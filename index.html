@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta tags ajustadas para iOS e Safe Areas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>OpEra+ Coletor</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ajustes Mobile, customização de scrollbar e iOS Safe Areas */
+        body { 
+            -webkit-tap-highlight-color: transparent;
+            /* Previne o bounce effect (elástico) no Safari iOS */
+            overscroll-behavior-y: none; 
+        }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Modal Transition */
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
+
+        /* Proteção para a barra inferior do iPhone (Notch/Home Indicator) */
+        .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    </style>
+</head>
+<!-- BLINDAGEM IOS 1: Uso de "fixed inset-0" ao invés de h-screen/h-100dvh para travar a tela -->
+<body class="bg-slate-900 text-slate-100 font-sans fixed inset-0 w-full h-full overflow-hidden flex flex-col">
+
+    <!-- ==================== TELA DE SETUP ==================== -->
+    <div id="setup-screen" class="flex flex-col h-full p-6 justify-center max-w-md mx-auto w-full z-10 pb-safe">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black text-yellow-500 mb-2">OpEra+</h1>
+            <p class="text-slate-400">Coletor de Tempo e Movimento</p>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <label class="block text-sm font-bold mb-2 text-yellow-500">Nome do Estudo (Máquina/OS)</label>
+                <input type="text" id="setup-name" class="w-full p-4 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-lg placeholder-slate-500" placeholder="Ex: Transmissao_WA380">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-2 text-yellow-500">Classificação Geral</label>
+                <select id="setup-class" class="w-full p-4 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-lg appearance-none">
+                    <option value="" disabled selected>Selecione...</option>
+                    <option value="Desmontagem">Desmontagem</option>
+                    <option value="Montagem">Montagem</option>
+                    <option value="Inspecao">Inspeção</option>
+                    <option value="TextoLivre">Outro (Texto Livre)</option>
+                </select>
+            </div>
+            <button id="btn-start" class="w-full bg-yellow-500 text-black font-black text-xl p-5 rounded-xl mt-4 shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all">
+                INICIAR ESTUDO
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== TELA PRINCIPAL (CRONÔMETRO) ==================== -->
+    <div id="main-screen" class="hidden flex-col h-full w-full max-w-md mx-auto relative">
+        
+        <!-- Header / Total Time -->
+        <div class="bg-slate-800 p-4 shadow-md z-10 flex flex-col items-center border-b border-slate-700 pt-[max(1rem,env(safe-area-inset-top))]">
+            <p id="display-study-id" class="text-xs text-slate-400 font-mono mb-2 truncate w-full text-center"></p>
+            <div class="flex justify-between w-full items-end">
+                <div class="flex flex-col">
+                    <span class="text-xs text-yellow-500 font-bold uppercase">Tempo Total</span>
+                    <span id="total-time-display" class="text-3xl font-mono font-black">00:00:00</span>
+                </div>
+                <div class="flex flex-col text-right">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Lap Atual</span>
+                    <span id="lap-time-display" class="text-2xl font-mono text-slate-300">00:00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Lap Classification Setup -->
+        <div class="flex-none p-4 space-y-3 bg-slate-900 border-b border-slate-800 z-10">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-bold text-yellow-500">Classificação da Etapa Atual</span>
+                
+                <div class="relative">
+                    <input type="file" id="current-photo-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <button class="bg-slate-700 text-slate-200 px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2 border border-slate-600">
+                        📷 Foto <span id="current-photo-count" class="bg-yellow-500 text-black px-1.5 rounded-full text-xs">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <select id="current-l1" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate"></select>
+            <select id="current-l2" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
+            <select id="current-l3" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
+            <input type="text" id="current-freetext" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500 hidden" placeholder="Digite o detalhe...">
+            
+            <button id="btn-record-lap" class="w-full bg-yellow-500 text-black font-black text-lg p-4 rounded-xl mt-2 shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all">
+                GRAVAR ETAPA (LAP)
+            </button>
+        </div>
+
+        <!-- Laps List -->
+        <!-- BLINDAGEM IOS 2: Adicionado min-h-0. Sem isso, o Safari não reconhece o limite do flex e a rolagem quebra -->
+        <div class="flex-1 min-h-0 overflow-y-auto hide-scroll p-4 space-y-3" id="laps-container">
+            <!-- Cards gerados via JS -->
+        </div>
+
+        <!-- Footer -->
+        <!-- BLINDAGEM IOS 3: pb-safe garante que o botão não fique atrás do risquinho do iPhone -->
+        <div class="bg-slate-800 p-4 border-t border-slate-700 z-10 pb-safe">
+            <button id="btn-export" class="w-full bg-slate-700 text-white font-bold text-base p-4 rounded-xl border border-slate-600 active:bg-slate-600 transition-colors">
+                Finalizar Estudo e Exportar CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DE EDIÇÃO RETROATIVA ==================== -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col modal-enter-active">
+            
+            <div class="bg-slate-800 p-4 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-yellow-500">Editar Classificação</h2>
+                <p id="modal-lap-id" class="text-xs text-slate-400 font-mono"></p>
+                <div class="flex justify-between mt-2 text-sm text-slate-300">
+                    <span>Tempo: <strong id="modal-lap-time" class="text-white"></strong></span>
+                    <span>Total: <strong id="modal-total-time" class="text-white"></strong></span>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-4 overflow-y-auto pb-safe">
+                <div class="bg-slate-800/50 p-3 rounded-lg border border-yellow-500/30 text-xs text-yellow-200/80 mb-2">
+                    O tempo da etapa está bloqueado para manter a integridade matemática do estudo. Edite apenas a classificação.
+                </div>
+
+                <select id="modal-l1" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate"></select>
+                <select id="modal-l2" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
+                <select id="modal-l3" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
+                <input type="text" id="modal-freetext" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500 hidden" placeholder="Digite o detalhe...">
+                
+                <div class="relative mt-4 border-t border-slate-800 pt-4">
+                    <input type="file" id="modal-photo-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <button class="w-full bg-slate-800 text-slate-200 p-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 border border-slate-600">
+                        📷 Adicionar Foto a este Lap <span id="modal-photo-count" class="bg-yellow-500 text-black px-2 py-0.5 rounded-full text-xs ml-2">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-4 border-t border-slate-700 flex gap-3 pb-safe">
+                <button id="btn-modal-cancel" class="flex-1 bg-slate-700 text-white font-bold p-3 rounded-xl">Cancelar</button>
+                <button id="btn-modal-save" class="flex-1 bg-yellow-500 text-black font-bold p-3 rounded-xl">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT (VANILLA) ==================== -->
+    <script>
+        /**
+         * DICIONÁRIO DE DADOS
+         */
+        const DICTIONARY = {
+            "[OP] Operacao": {
+                "Desmontar": ["Parafusos/Porcas", "Componentes Hidráulicos", "Carenagem/Lataria", "Estrutura Principal"],
+                "Montar": ["Parafusos/Porcas", "Componentes Hidráulicos", "Carenagem/Lataria", "Estrutura Principal", "Ajuste/Torque"],
+                "Inspecionar": ["Medição com Paquímetro/Micrômetro", "Inspeção Visual", "Teste de Fluido"],
+                "Limpar": ["Lavagem Química", "Ar Comprimido", "Limpeza Manual"]
+            },
+            "[AP] Apoio": {
+                "Ferramentas/Insumos": ["Buscar no Almoxarifado", "Preparar Ferramenta", "Guardar Ferramenta"],
+                "Movimentacao": ["Operar Ponte Rolante", "Operar Empilhadeira", "Ajustar Cinta/Estropo"],
+                "Colega": ["Ajudar outro mecânico", "Orientar Auxiliar"]
+            },
+            "[DP] Desperdicio": {
+                "Espera": ["Aguardar Ponte Rolante", "Aguardar Peça", "Aguardar Aprovação/Inspetor"],
+                "Procurar": ["Procurar Ferramenta Perdida", "Procurar Informação/Manual"],
+                "Deslocamento": ["Caminhada Vazia", "Ida ao Banheiro/Água fora de hora"],
+                "Retrabalho": ["Refazer montagem incorreta", "Corrigir ajuste"]
+            },
+            "[AD] Administrativo": {
+                "Sistema/Papel": ["Preencher OS", "Apontamento no Sistema", "Ler Manual/Catálogo"],
+                "Gestao": ["Reunião DDS", "Conversa com Supervisor"]
+            }
+        };
+
+        const OUTRO_TEXT = "Outro (Texto Livre)";
+
+        let state = {
+            studyId: null, startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
+            currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentImageCount: 0, currentImageNames: []
+        };
+
+        let timerInterval = null;
+        let editingLapIndex = null; 
+        let isFinishingStudy = false;
+
+        const DOM = {
+            setupScreen: document.getElementById('setup-screen'),
+            mainScreen: document.getElementById('main-screen'),
+            editModal: document.getElementById('edit-modal'),
+            setupName: document.getElementById('setup-name'),
+            setupClass: document.getElementById('setup-class'),
+            btnStart: document.getElementById('btn-start'),
+            displayStudyId: document.getElementById('display-study-id'),
+            totalTimeDisplay: document.getElementById('total-time-display'),
+            lapTimeDisplay: document.getElementById('lap-time-display'),
+            lapsContainer: document.getElementById('laps-container'),
+            cL1: document.getElementById('current-l1'),
+            cL2: document.getElementById('current-l2'),
+            cL3: document.getElementById('current-l3'),
+            cFreeText: document.getElementById('current-freetext'),
+            cPhotoInput: document.getElementById('current-photo-input'),
+            cPhotoCount: document.getElementById('current-photo-count'),
+            btnRecordLap: document.getElementById('btn-record-lap'),
+            btnExport: document.getElementById('btn-export'),
+            mId: document.getElementById('modal-lap-id'),
+            mTime: document.getElementById('modal-lap-time'),
+            mTotal: document.getElementById('modal-total-time'),
+            mL1: document.getElementById('modal-l1'),
+            mL2: document.getElementById('modal-l2'),
+            mL3: document.getElementById('modal-l3'),
+            mFreeText: document.getElementById('modal-freetext'),
+            mPhotoInput: document.getElementById('modal-photo-input'),
+            mPhotoCount: document.getElementById('modal-photo-count'),
+            btnModalCancel: document.getElementById('btn-modal-cancel'),
+            btnModalSave: document.getElementById('btn-modal-save')
+        };
+
+        const padZero = (num) => num.toString().padStart(2, '0');
+        
+        const formatTime = (ms) => {
+            if (ms < 0) ms = 0;
+            let totalSeconds = Math.floor(ms / 1000);
+            let hours = Math.floor(totalSeconds / 3600);
+            let minutes = Math.floor((totalSeconds % 3600) / 60);
+            let seconds = totalSeconds % 60;
+            return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+        };
+
+        const getTimestampStr = () => {
+            const d = new Date();
+            return `${d.getFullYear()}${padZero(d.getMonth()+1)}${padZero(d.getDate())}_${padZero(d.getHours())}${padZero(d.getMinutes())}${padZero(d.getSeconds())}`;
+        };
+
+        const getShortTimeStr = () => {
+            const d = new Date();
+            return `${padZero(d.getHours())}${padZero(d.getMinutes())}${padZero(d.getSeconds())}`;
+        };
+
+        const getFileExtension = (filename) => {
+            return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2) || "jpg";
+        };
+
+        const populateSelect = (selectEl, optionsArray, selectedValue = "") => {
+            selectEl.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+            optionsArray.forEach(opt => {
+                const isSelected = opt === selectedValue ? "selected" : "";
+                selectEl.innerHTML += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+            });
+            selectEl.classList.remove('hidden');
+        };
+
+        const handleCascading = (prefix) => {
+            const elL1 = prefix === 'current' ? DOM.cL1 : DOM.mL1;
+            const elL2 = prefix === 'current' ? DOM.cL2 : DOM.mL2;
+            const elL3 = prefix === 'current' ? DOM.cL3 : DOM.mL3;
+            const elFreeText = prefix === 'current' ? DOM.cFreeText : DOM.mFreeText;
+
+            elL1.addEventListener('change', (e) => {
+                const val = e.target.value;
+                elFreeText.classList.add('hidden');
+                elFreeText.value = "";
+                elL3.classList.add('hidden');
+                elL3.innerHTML = "";
+                if (DICTIONARY[val]) {
+                    populateSelect(elL2, Object.keys(DICTIONARY[val]));
+                } else {
+                    elL2.classList.add('hidden');
+                }
+                saveLiveState();
+            });
+
+            elL2.addEventListener('change', (e) => {
+                const l1Val = elL1.value;
+                const l2Val = e.target.value;
+                elFreeText.classList.add('hidden');
+                elFreeText.value = "";
+                if (DICTIONARY[l1Val] && DICTIONARY[l1Val][l2Val]) {
+                    const l3Options = [...DICTIONARY[l1Val][l2Val], OUTRO_TEXT];
+                    populateSelect(elL3, l3Options);
+                }
+                saveLiveState();
+            });
+
+            elL3.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val === OUTRO_TEXT) {
+                    elFreeText.classList.remove('hidden');
+                } else {
+                    elFreeText.classList.add('hidden');
+                    elFreeText.value = "";
+                }
+                saveLiveState();
+            });
+
+            elFreeText.addEventListener('input', saveLiveState);
+        };
+
+        const saveLiveState = () => {
+            state.currentL1 = DOM.cL1.value;
+            state.currentL2 = !DOM.cL2.classList.contains('hidden') ? DOM.cL2.value : "";
+            state.currentL3 = !DOM.cL3.classList.contains('hidden') ? DOM.cL3.value : "";
+            state.currentFreeText = DOM.cFreeText.value;
+            saveStorage();
+        };
+
+        const updateDisplay = () => {
+            if (!state.startTime) return;
+            const now = Date.now();
+            const totalElapsed = now - state.startTime;
+            const lapElapsed = now - state.currentLapStartTime;
+            DOM.totalTimeDisplay.textContent = formatTime(totalElapsed);
+            DOM.lapTimeDisplay.textContent = formatTime(lapElapsed);
+        };
+
+        const startTimerEngine = () => {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateDisplay, 250); 
+        };
+
+        const startStudy = () => {
+            const name = DOM.setupName.value.trim().replace(/[^a-zA-Z0-9_]/g, '');
+            const cls = DOM.setupClass.value;
+            
+            if (!name || !cls) {
+                alert("Preencha Nome e Classificação Geral.");
+                return;
+            }
+
+            const timestamp = getTimestampStr();
+            state.studyId = `${name}_${cls}_${timestamp}`;
+            
+            const now = Date.now();
+            state.startTime = now;
+            state.currentLapStartTime = now;
+            
+            populateSelect(DOM.cL1, Object.keys(DICTIONARY));
+
+            DOM.setupScreen.classList.add('hidden');
+            DOM.mainScreen.classList.remove('hidden');
+            DOM.mainScreen.classList.add('flex');
+            DOM.displayStudyId.textContent = state.studyId;
+
+            saveStorage();
+            startTimerEngine();
+        };
+
+        const recordLap = () => {
+            const now = Date.now();
+            state.lapCount++;
+            
+            const lapElapsed = now - state.currentLapStartTime;
+            const totalElapsed = now - state.startTime;
+            const lapId = `Lap${padZero(state.lapCount)}_${getShortTimeStr()}`;
+
+            const l1 = DOM.cL1.value || "Não classificado";
+            const l2 = (!DOM.cL2.classList.contains('hidden') && DOM.cL2.value) ? DOM.cL2.value : "";
+            const l3 = (!DOM.cL3.classList.contains('hidden') && DOM.cL3.value) ? DOM.cL3.value : "";
+            const fText = DOM.cFreeText.value;
+
+            const lapObj = {
+                lapId: lapId,
+                lapNumber: state.lapCount,
+                lapTimeFormatted: formatTime(lapElapsed),
+                totalTimeFormatted: formatTime(totalElapsed),
+                l1: l1, l2: l2, l3: l3, freeText: fText,
+                imageCount: state.currentImageCount,
+                imageNames: [...state.currentImageNames] 
+            };
+
+            state.laps.unshift(lapObj); 
+            state.currentLapStartTime = now;
+            
+            resetCurrentUI();
+            renderLapsList();
+            saveStorage();
+        };
+
+        const resetCurrentUI = () => {
+            DOM.cL1.value = "";
+            DOM.cL2.classList.add('hidden');
+            DOM.cL3.classList.add('hidden');
+            DOM.cFreeText.classList.add('hidden');
+            DOM.cFreeText.value = "";
+            state.currentImageCount = 0;
+            state.currentImageNames = [];
+            DOM.cPhotoCount.textContent = "0";
+            saveLiveState();
+        };
+
+        const renderLapsList = () => {
+            DOM.lapsContainer.innerHTML = "";
+            state.laps.forEach((lap, index) => {
+                let noteDisplay = lap.l1;
+                if (lap.l2) noteDisplay += ` > ${lap.l2}`;
+                if (lap.l3 && lap.l3 !== OUTRO_TEXT) noteDisplay += ` > ${lap.l3}`;
+                if (lap.freeText) noteDisplay += ` (${lap.freeText})`;
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 p-4 rounded-xl border border-slate-700 active:bg-slate-700 transition-colors cursor-pointer flex justify-between items-center shadow-sm";
+                card.innerHTML = `
+                    <div class="flex-1 overflow-hidden pr-2">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Lap ${lap.lapNumber}</span>
+                            ${lap.imageCount > 0 ? `<span class="text-xs text-slate-400">📷 ${lap.imageCount}</span>` : ''}
+                        </div>
+                        <p class="text-white font-mono text-lg font-bold">${lap.lapTimeFormatted}</p>
+                        <p class="text-slate-400 text-xs truncate mt-1">${noteDisplay}</p>
+                    </div>
+                    <div class="text-slate-500 text-xl font-bold pl-2">›</div>
+                `;
+                card.addEventListener('click', () => openModal(index));
+                DOM.lapsContainer.appendChild(card);
+            });
+        };
+
+        const processPhoto = (file, isModal) => {
+            if (!file) return;
+            const ext = getFileExtension(file.name);
+            let targetLapId = "";
+            let imgIndex = 0;
+
+            if (isModal) {
+                const lap = state.laps[editingLapIndex];
+                imgIndex = lap.imageCount + 1;
+                targetLapId = lap.lapId;
+            } else {
+                imgIndex = state.currentImageCount + 1;
+                targetLapId = `Lap${padZero(state.lapCount + 1)}_Current`;
+            }
+
+            const newFileName = `${state.studyId}_${targetLapId}_Foto${imgIndex}.${ext}`;
+
+            const fileUrl = URL.createObjectURL(file);
+            const a = document.createElement('a');
+            a.href = fileUrl;
+            a.download = newFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(fileUrl); 
+
+            if (isModal) {
+                state.laps[editingLapIndex].imageCount++;
+                state.laps[editingLapIndex].imageNames.push(newFileName);
+                DOM.mPhotoCount.textContent = state.laps[editingLapIndex].imageCount;
+                renderLapsList();
+            } else {
+                state.currentImageCount++;
+                state.currentImageNames.push(newFileName);
+                DOM.cPhotoCount.textContent = state.currentImageCount;
+            }
+            saveStorage();
+        };
+
+        const openModal = (index) => {
+            editingLapIndex = index;
+            const lap = state.laps[index];
+
+            DOM.mId.textContent = lap.lapId;
+            DOM.mTime.textContent = lap.lapTimeFormatted;
+            DOM.mTotal.textContent = lap.totalTimeFormatted;
+            DOM.mPhotoCount.textContent = lap.imageCount;
+
+            populateSelect(DOM.mL1, Object.keys(DICTIONARY), lap.l1);
+            if (lap.l1 && DICTIONARY[lap.l1]) {
+                populateSelect(DOM.mL2, Object.keys(DICTIONARY[lap.l1]), lap.l2);
+                if (lap.l2 && DICTIONARY[lap.l1][lap.l2]) {
+                    const l3Options = [...DICTIONARY[lap.l1][lap.l2], OUTRO_TEXT];
+                    populateSelect(DOM.mL3, l3Options, lap.l3);
+                } else {
+                    DOM.mL3.classList.add('hidden');
+                }
+            } else {
+                DOM.mL2.classList.add('hidden');
+                DOM.mL3.classList.add('hidden');
+            }
+
+            if (lap.l3 === OUTRO_TEXT || lap.freeText) {
+                DOM.mFreeText.classList.remove('hidden');
+                DOM.mFreeText.value = lap.freeText;
+            } else {
+                DOM.mFreeText.classList.add('hidden');
+                DOM.mFreeText.value = "";
+            }
+
+            DOM.editModal.classList.remove('hidden');
+        };
+
+        const closeModal = () => {
+            DOM.editModal.classList.add('hidden');
+            editingLapIndex = null;
+        };
+
+        const saveModal = () => {
+            if (editingLapIndex === null) return;
+            const lap = state.laps[editingLapIndex];
+
+            lap.l1 = DOM.mL1.value || "";
+            lap.l2 = (!DOM.mL2.classList.contains('hidden') && DOM.mL2.value) ? DOM.mL2.value : "";
+            lap.l3 = (!DOM.mL3.classList.contains('hidden') && DOM.mL3.value) ? DOM.mL3.value : "";
+            lap.freeText = DOM.mFreeText.value;
+
+            renderLapsList();
+            saveStorage();
+            closeModal();
+        };
+
+        const exportCSV = () => {
+            if (!confirm("Isso irá finalizar o estudo e baixar o relatório. O cronômetro será parado e zerado. Tem certeza?")) return;
+
+            isFinishingStudy = true;
+
+            let csvContent = "Study ID;Lap ID;Lap Number;Lap Time (HH:mm:ss);Total Time (HH:mm:ss);Note;Image Count;Image Names\n";
+            const exportData = [...state.laps].reverse();
+
+            exportData.forEach(lap => {
+                let note = [lap.l1, lap.l2, lap.l3].filter(Boolean).join(" - ");
+                let ft = lap.freeText.replace(/;/g, ",").replace(/\n/g, " "); 
+                if (lap.l3 === OUTRO_TEXT && ft) note = note.replace(OUTRO_TEXT, ft);
+                else if (ft) note += ` (${ft})`;
+
+                let imgs = lap.imageNames.join(" | ");
+                csvContent += `${state.studyId};${lap.lapId};${lap.lapNumber};${lap.lapTimeFormatted};${lap.totalTimeFormatted};"${note}";${lap.imageCount};"${imgs}"\n`;
+            });
+
+            const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' }); 
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${state.studyId}_dados.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            clearInterval(timerInterval); 
+            clearStorage(); 
+
+            state = {
+                studyId: null, startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
+                currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentImageCount: 0, currentImageNames: []
+            };
+
+            DOM.totalTimeDisplay.textContent = "00:00:00";
+            DOM.lapTimeDisplay.textContent = "00:00:00";
+            DOM.lapsContainer.innerHTML = "";
+            DOM.setupName.value = "";
+            DOM.setupClass.value = "";
+            resetCurrentUI();
+
+            DOM.mainScreen.classList.add('hidden');
+            DOM.mainScreen.classList.remove('flex');
+            DOM.setupScreen.classList.remove('hidden');
+
+            isFinishingStudy = false;
+        };
+
+        const saveStorage = () => {
+            if(isFinishingStudy) return; 
+            localStorage.setItem('operaPlusState', JSON.stringify(state));
+        };
+
+        const clearStorage = () => {
+            localStorage.removeItem('operaPlusState');
+        };
+
+        const loadStorage = () => {
+            const saved = localStorage.getItem('operaPlusState');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    if (state.studyId && state.startTime) {
+                        return true; 
+                    }
+                } catch (e) {
+                    console.error("Erro ao ler LocalStorage", e);
+                }
+            }
+            return false;
+        };
+
+        const bootApp = () => {
+            handleCascading('current');
+            handleCascading('modal');
+
+            DOM.btnStart.addEventListener('click', startStudy);
+            DOM.btnRecordLap.addEventListener('click', recordLap);
+            DOM.btnExport.addEventListener('click', exportCSV);
+            DOM.btnModalCancel.addEventListener('click', closeModal);
+            DOM.btnModalSave.addEventListener('click', saveModal);
+
+            DOM.cPhotoInput.addEventListener('change', (e) => processPhoto(e.target.files[0], false));
+            DOM.mPhotoInput.addEventListener('change', (e) => processPhoto(e.target.files[0], true));
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && state.startTime && !isFinishingStudy) {
+                    saveStorage();
+                }
+            });
+
+            if (loadStorage()) {
+                DOM.setupScreen.classList.add('hidden');
+                DOM.mainScreen.classList.remove('hidden');
+                DOM.mainScreen.classList.add('flex');
+                
+                DOM.displayStudyId.textContent = state.studyId;
+                
+                populateSelect(DOM.cL1, Object.keys(DICTIONARY), state.currentL1);
+                if (state.currentL1 && DICTIONARY[state.currentL1]) {
+                    populateSelect(DOM.cL2, Object.keys(DICTIONARY[state.currentL1]), state.currentL2);
+                    if (state.currentL2 && DICTIONARY[state.currentL1][state.currentL2]) {
+                        const l3Options = [...DICTIONARY[state.currentL1][state.currentL2], OUTRO_TEXT];
+                        populateSelect(DOM.cL3, l3Options, state.currentL3);
+                    }
+                }
+                if (state.currentL3 === OUTRO_TEXT || state.currentFreeText) {
+                    DOM.cFreeText.classList.remove('hidden');
+                    DOM.cFreeText.value = state.currentFreeText;
+                }
+                
+                DOM.cPhotoCount.textContent = state.currentImageCount;
+
+                renderLapsList();
+                startTimerEngine();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', bootApp);
+    </script>
+</body>
+</html>
