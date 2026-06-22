@@ -158,28 +158,37 @@
          * DICIONÁRIO DE DADOS
          */
         const DICTIONARY = {
-            "[OP] Operacao": {
-                "Desmontar": ["Parafusos/Porcas", "Componentes Hidráulicos", "Carenagem/Lataria", "Estrutura Principal"],
-                "Montar": ["Parafusos/Porcas", "Componentes Hidráulicos", "Carenagem/Lataria", "Estrutura Principal", "Ajuste/Torque"],
-                "Inspecionar": ["Medição com Paquímetro/Micrômetro", "Inspeção Visual", "Teste de Fluido"],
-                "Limpar": ["Lavagem Química", "Ar Comprimido", "Limpeza Manual"]
-            },
-            "[AP] Apoio": {
-                "Ferramentas/Insumos": ["Buscar no Almoxarifado", "Preparar Ferramenta", "Guardar Ferramenta"],
-                "Movimentacao": ["Operar Ponte Rolante", "Operar Empilhadeira", "Ajustar Cinta/Estropo"],
-                "Colega": ["Ajudar outro mecânico", "Orientar Auxiliar"]
-            },
-            "[DP] Desperdicio": {
-                "Espera": ["Aguardar Ponte Rolante", "Aguardar Peça", "Aguardar Aprovação/Inspetor"],
-                "Procurar": ["Procurar Ferramenta Perdida", "Procurar Informação/Manual"],
-                "Deslocamento": ["Caminhada Vazia", "Ida ao Banheiro/Água fora de hora"],
-                "Retrabalho": ["Refazer montagem incorreta", "Corrigir ajuste"]
-            },
-            "[AD] Administrativo": {
-                "Sistema/Papel": ["Preencher OS", "Apontamento no Sistema", "Ler Manual/Catálogo"],
-                "Gestao": ["Reunião DDS", "Conversa com Supervisor"]
-            }
-        };
+    "[OP] Operação": {
+        "Remover": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
+        "Instalar": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
+        "Soltar / Afrouxar": ["Parafusos/Porcas de Fixação", "Conexões/Tubos Hidráulicos", "Travas/Anéis Elásticos", "Outro (Texto Livre)"],
+        "Torquear / Apertar": ["Torque Manual (Torquímetro)", "Torque Pneumático/Hidráulico", "Conexões Hidráulicas", "Outro (Texto Livre)"],
+        "Medir / Calibrar": ["Folga (Backlash/End play)", "Pré-carga de Rolamento", "Desgaste Dimensional", "Dimensional", "Outro (Texto Livre)"],
+        "Aplicar Força / Calor": ["Prensagem na Prensa Hidráulica", "Aquecimento de Peça (Maçarico/Indutora)", "Uso de Sacador/Marreta", "Outro (Texto Livre)"]
+    },
+    "[AP] Apoio": {
+        "Movimentar Carga": ["Içar/Descer com Ponte", "Girar/Tombar Componente", "Posicionar no Palete", "Transporte", "Outro (Texto Livre)"],
+        "Limpar / Preparar Sup.": ["Remoção de Cola/Junta Velha", "Lavagem Química Secundária", "Limpeza de Roscas/Alojamentos", "Lixar", "Outro (Texto Livre)"],
+        "Setup Inicial": ["Instalar Olhais/Dispositivos de Içamento", "Organizar parafusos", "Drenar Fluidos", "Separar Ferramentas na Bancada", "Outro (Texto Livre)"],
+        "Consultar": ["Manual Técnico (SIS)", "Especificação de Torque", "Identificação de Part Number", "Outro (Texto Livre)", "Orçamento", "Plano de Inspeção"]
+    },
+    "[DP] Desperdício": {
+        "Ocioso / Distração": ["Uso de Celular", "Conversa Paralela", "Pausa não programada", "Outro (Texto Livre)"],
+        "Procurar": ["Ferramenta Quebrada/Perdida", "Chave/Soquete fora do padrão", "Dispositivo de Içamento (Cinta/Olhal)", "Peça Perdida", "Outro (Texto Livre)"],
+        "Faltar": ["Falta de Insumo (Desengraxante, Pano)", "Falta de Peça no Balcão", "Outro (Texto Livre)"],
+        "Esperar": ["Ponte Rolante Ocupada", "Lavadora de Peças Ocupada", "Empilhadeira Indisponível", "Aguardando Inspetor/Supervisor", "Peças CDP", "Peças Serviço Terceiro", "Peças Faltantes", "Outro (Texto Livre)"],
+        "Deslocar": ["Ida Extra ao Almoxarifado/Ferramentaria", "Deslocamento Inútil pela Oficina", "Outro (Texto Livre)"],
+        "Dificuldade Técnica": ["Peça Travada por Ferrugem/Oxidação", "Contaminação Excessiva", "Ferramenta Inadequada (Exigiu esforço extra)", "Outro (Texto Livre)"],
+        "Refazer / Retrabalho": ["Vazamento Detectado", "Montagem Incorreta", "Torque fora do padrão", "Outro (Texto Livre)"],
+        "Interrupção": ["Ajudar colega em outra OS", "Chamado pelo Supervisor", "Tirando dúvida de terceiros", "Outro (Texto Livre)"]
+    },
+    "[AD] Administrativo / Seg.": {
+        "Preencher": ["Apontamento de OS", "Requisição de Peças no Balcão", "Outro (Texto Livre)"],
+        "Dialogar": ["DDS (Diálogo Diário de Segurança)", "Alinhamento com Coordenador", "Outro (Texto Livre)"],
+        "Segurança": ["Colocação de EPI Específico", "Isolamento de Área", "Outro (Texto Livre)"]
+    }
+};
+
 
         const OUTRO_TEXT = "Outro (Texto Livre)";
 
