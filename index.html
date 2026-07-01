@@ -31,28 +31,55 @@
 <body class="bg-slate-900 text-slate-100 font-sans fixed inset-0 w-full h-full overflow-hidden flex flex-col">
 
     <!-- ==================== TELA DE SETUP ==================== -->
-    <div id="setup-screen" class="flex flex-col h-full p-6 justify-center max-w-md mx-auto w-full z-10 pb-safe">
-        <div class="text-center mb-8">
+    <div id="setup-screen" class="flex flex-col h-full p-6 max-w-md mx-auto w-full z-10 pb-safe overflow-y-auto hide-scroll">
+        <div class="text-center mb-6 mt-4 shrink-0">
             <h1 class="text-4xl font-black text-yellow-500 mb-2">OpEra+</h1>
             <p class="text-slate-400">Coletor de Tempo e Movimento</p>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-4 shrink-0 pb-8">
             <div>
-                <label class="block text-sm font-bold mb-2 text-yellow-500">Nome do Estudo (Máquina/OS)</label>
-                <input type="text" id="setup-name" class="w-full p-4 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-lg placeholder-slate-500" placeholder="Ex: Transmissao_WA380">
+                <label class="block text-sm font-bold mb-1 text-yellow-500">OS</label>
+                <input type="text" id="setup-os" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base placeholder-slate-500" placeholder="Ex: 123456">
             </div>
             <div>
-                <label class="block text-sm font-bold mb-2 text-yellow-500">Classificação Geral</label>
-                <select id="setup-class" class="w-full p-4 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-lg appearance-none">
+                <label class="block text-sm font-bold mb-1 text-yellow-500">Data</label>
+                <input type="date" id="setup-date" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 text-yellow-500">Modelo</label>
+                <input type="text" id="setup-model" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base placeholder-slate-500" placeholder="Ex: 972L">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 text-yellow-500">Componente</label>
+                <input type="text" id="setup-component" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base placeholder-slate-500" placeholder="Ex: Eixo Traseiro">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 text-yellow-500">Classificação Geral</label>
+                <select id="setup-class" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base appearance-none">
                     <option value="" disabled selected>Selecione...</option>
                     <option value="Desmontagem">Desmontagem</option>
                     <option value="Montagem">Montagem</option>
                     <option value="Inspecao">Inspeção</option>
                     <option value="TextoLivre">Outro (Texto Livre)</option>
                 </select>
+                <input type="text" id="setup-class-other" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base placeholder-slate-500 hidden mt-2" placeholder="Qual classificação?">
             </div>
-            <button id="btn-start" class="w-full bg-yellow-500 text-black font-black text-xl p-5 rounded-xl mt-4 shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all">
+            <div class="flex gap-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-bold mb-1 text-yellow-500">Tipo de Serviço</label>
+                    <select id="setup-service" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base appearance-none">
+                        <option value="" disabled selected>Selecione...</option>
+                        <option value="Garantia">Garantia</option>
+                        <option value="Rentavel">Rentável</option>
+                    </select>
+                </div>
+                <div class="w-1/3">
+                    <label class="block text-sm font-bold mb-1 text-yellow-500">Técnicos</label>
+                    <input type="number" id="setup-techs" min="1" value="1" class="w-full p-3 rounded-xl bg-slate-800 border-2 border-slate-700 focus:border-yellow-500 outline-none text-base text-center">
+                </div>
+            </div>
+            <button id="btn-start" class="w-full bg-yellow-500 text-black font-black text-xl p-4 rounded-xl mt-4 shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all">
                 INICIAR ESTUDO
             </button>
         </div>
@@ -93,6 +120,7 @@
             <select id="current-l2" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
             <select id="current-l3" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
             <input type="text" id="current-freetext" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500 hidden" placeholder="Digite o detalhe...">
+            <input type="text" id="current-observation" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500" placeholder="Observação (opcional)...">
             
             <button id="btn-record-lap" class="w-full bg-yellow-500 text-black font-black text-lg p-4 rounded-xl mt-2 shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all">
                 GRAVAR ETAPA (LAP)
@@ -136,6 +164,7 @@
                 <select id="modal-l2" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
                 <select id="modal-l3" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm appearance-none truncate hidden"></select>
                 <input type="text" id="modal-freetext" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500 hidden" placeholder="Digite o detalhe...">
+                <input type="text" id="modal-observation" class="w-full p-3 rounded-lg bg-slate-800 border border-slate-700 outline-none text-sm placeholder-slate-500" placeholder="Observação (opcional)...">
                 
                 <div class="relative mt-4 border-t border-slate-800 pt-4">
                     <input type="file" id="modal-photo-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
@@ -158,43 +187,43 @@
          * DICIONÁRIO DE DADOS
          */
         const DICTIONARY = {
-    "[OP] Operação": {
-        "Remover": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
-        "Instalar": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
-        "Soltar / Afrouxar": ["Parafusos/Porcas de Fixação", "Conexões/Tubos Hidráulicos", "Travas/Anéis Elásticos", "Outro (Texto Livre)"],
-        "Torquear / Apertar": ["Torque Manual (Torquímetro)", "Torque Pneumático/Hidráulico", "Conexões Hidráulicas", "Outro (Texto Livre)"],
-        "Medir / Calibrar": ["Folga (Backlash/End play)", "Pré-carga de Rolamento", "Desgaste Dimensional", "Dimensional", "Outro (Texto Livre)"],
-        "Aplicar Força / Calor": ["Prensagem na Prensa Hidráulica", "Aquecimento de Peça (Maçarico/Indutora)", "Uso de Sacador/Marreta", "Outro (Texto Livre)"]
-    },
-    "[AP] Apoio": {
-        "Movimentar Carga": ["Içar/Descer com Ponte", "Girar/Tombar Componente", "Posicionar no Palete", "Transporte", "Outro (Texto Livre)"],
-        "Limpar / Preparar Sup.": ["Remoção de Cola/Junta Velha", "Lavagem Química Secundária", "Limpeza de Roscas/Alojamentos", "Lixar", "Outro (Texto Livre)"],
-        "Setup Inicial": ["Instalar Olhais/Dispositivos de Içamento", "Organizar parafusos", "Drenar Fluidos", "Separar Ferramentas na Bancada", "Outro (Texto Livre)"],
-        "Consultar": ["Manual Técnico (SIS)", "Especificação de Torque", "Identificação de Part Number", "Outro (Texto Livre)", "Orçamento", "Plano de Inspeção"]
-    },
-    "[DP] Desperdício": {
-        "Ocioso / Distração": ["Uso de Celular", "Conversa Paralela", "Pausa não programada", "Outro (Texto Livre)"],
-        "Procurar": ["Ferramenta Quebrada/Perdida", "Chave/Soquete fora do padrão", "Dispositivo de Içamento (Cinta/Olhal)", "Peça Perdida", "Outro (Texto Livre)"],
-        "Faltar": ["Falta de Insumo (Desengraxante, Pano)", "Falta de Peça no Balcão", "Outro (Texto Livre)"],
-        "Esperar": ["Ponte Rolante Ocupada", "Lavadora de Peças Ocupada", "Empilhadeira Indisponível", "Aguardando Inspetor/Supervisor", "Peças CDP", "Peças Serviço Terceiro", "Peças Faltantes", "Outro (Texto Livre)"],
-        "Deslocar": ["Ida Extra ao Almoxarifado/Ferramentaria", "Deslocamento Inútil pela Oficina", "Outro (Texto Livre)"],
-        "Dificuldade Técnica": ["Peça Travada por Ferrugem/Oxidação", "Contaminação Excessiva", "Ferramenta Inadequada (Exigiu esforço extra)", "Outro (Texto Livre)"],
-        "Refazer / Retrabalho": ["Vazamento Detectado", "Montagem Incorreta", "Torque fora do padrão", "Outro (Texto Livre)"],
-        "Interrupção": ["Ajudar colega em outra OS", "Chamado pelo Supervisor", "Tirando dúvida de terceiros", "Outro (Texto Livre)"]
-    },
-    "[AD] Administrativo / Seg.": {
-        "Preencher": ["Apontamento de OS", "Requisição de Peças no Balcão", "Outro (Texto Livre)"],
-        "Dialogar": ["DDS (Diálogo Diário de Segurança)", "Alinhamento com Coordenador", "Outro (Texto Livre)"],
-        "Segurança": ["Colocação de EPI Específico", "Isolamento de Área", "Outro (Texto Livre)"]
-    }
-};
-
+            "[OP] Operação": {
+                "Remover": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
+                "Instalar": ["Rolamentos/Pistas", "Engrenagens/Eixos", "Tampas/Flanges", "Vedações/O-rings", "Outro (Texto Livre)", "Carcaça", "Cabeçote", "Cilindro"],
+                "Soltar / Afrouxar": ["Parafusos/Porcas de Fixação", "Conexões/Tubos Hidráulicos", "Travas/Anéis Elásticos", "Outro (Texto Livre)"],
+                "Torquear / Apertar": ["Torque Manual (Torquímetro)", "Torque Pneumático/Hidráulico", "Conexões Hidráulicas", "Outro (Texto Livre)"],
+                "Medir / Calibrar": ["Folga (Backlash/End play)", "Pré-carga de Rolamento", "Desgaste Dimensional", "Dimensional", "Outro (Texto Livre)"],
+                "Aplicar Força / Calor": ["Prensagem na Prensa Hidráulica", "Aquecimento de Peça (Maçarico/Indutora)", "Uso de Sacador/Marreta", "Outro (Texto Livre)"]
+            },
+            "[AP] Apoio": {
+                "Movimentar Carga": ["Içar/Descer com Ponte", "Girar/Tombar Componente", "Posicionar no Palete", "Transporte", "Outro (Texto Livre)"],
+                "Limpar / Preparar Sup.": ["Remoção de Cola/Junta Velha", "Lavagem Química Secundária", "Limpeza de Roscas/Alojamentos", "Lixar", "Outro (Texto Livre)"],
+                "Setup Inicial": ["Instalar Olhais/Dispositivos de Içamento", "Organizar parafusos", "Drenar Fluidos", "Separar Ferramentas na Bancada", "Outro (Texto Livre)"],
+                "Consultar": ["Manual Técnico (SIS)", "Especificação de Torque", "Identificação de Part Number", "Outro (Texto Livre)", "Orçamento", "Plano de Inspeção"]
+            },
+            "[DP] Desperdício": {
+                "Ocioso / Distração": ["Uso de Celular", "Conversa Paralela", "Pausa não programada", "Outro (Texto Livre)"],
+                "Procurar": ["Ferramenta Quebrada/Perdida", "Chave/Soquete fora do padrão", "Dispositivo de Içamento (Cinta/Olhal)", "Peça Perdida", "Outro (Texto Livre)"],
+                "Faltar": ["Falta de Insumo (Desengraxante, Pano)", "Falta de Peça no Balcão", "Outro (Texto Livre)"],
+                "Esperar": ["Ponte Rolante Ocupada", "Lavadora de Peças Ocupada", "Empilhadeira Indisponível", "Aguardando Inspetor/Supervisor", "Peças CDP", "Peças Serviço Terceiro", "Peças Faltantes", "Outro (Texto Livre)"],
+                "Deslocar": ["Ida Extra ao Almoxarifado/Ferramentaria", "Deslocamento Inútil pela Oficina", "Outro (Texto Livre)"],
+                "Dificuldade Técnica": ["Peça Travada por Ferrugem/Oxidação", "Contaminação Excessiva", "Ferramenta Inadequada (Exigiu esforço extra)", "Outro (Texto Livre)"],
+                "Refazer / Retrabalho": ["Vazamento Detectado", "Montagem Incorreta", "Torque fora do padrão", "Outro (Texto Livre)"],
+                "Interrupção": ["Ajudar colega em outra OS", "Chamado pelo Supervisor", "Tirando dúvida de terceiros", "Outro (Texto Livre)"]
+            },
+            "[AD] Administrativo / Seg.": {
+                "Preencher": ["Apontamento de OS", "Requisição de Peças no Balcão", "Outro (Texto Livre)"],
+                "Dialogar": ["DDS (Diálogo Diário de Segurança)", "Alinhamento com Coordenador", "Outro (Texto Livre)"],
+                "Segurança": ["Colocação de EPI Específico", "Isolamento de Área", "Outro (Texto Livre)"]
+            }
+        };
 
         const OUTRO_TEXT = "Outro (Texto Livre)";
 
         let state = {
-            studyId: null, startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
-            currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentImageCount: 0, currentImageNames: []
+            studyId: null, hash: null, os: "", date: "", model: "", component: "", generalClass: "", serviceType: "", techniciansCount: 1,
+            startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
+            currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: []
         };
 
         let timerInterval = null;
@@ -205,21 +234,32 @@
             setupScreen: document.getElementById('setup-screen'),
             mainScreen: document.getElementById('main-screen'),
             editModal: document.getElementById('edit-modal'),
-            setupName: document.getElementById('setup-name'),
+            
+            setupOs: document.getElementById('setup-os'),
+            setupDate: document.getElementById('setup-date'),
+            setupModel: document.getElementById('setup-model'),
+            setupComponent: document.getElementById('setup-component'),
             setupClass: document.getElementById('setup-class'),
+            setupClassOther: document.getElementById('setup-class-other'),
+            setupService: document.getElementById('setup-service'),
+            setupTechs: document.getElementById('setup-techs'),
             btnStart: document.getElementById('btn-start'),
+            
             displayStudyId: document.getElementById('display-study-id'),
             totalTimeDisplay: document.getElementById('total-time-display'),
             lapTimeDisplay: document.getElementById('lap-time-display'),
             lapsContainer: document.getElementById('laps-container'),
+            
             cL1: document.getElementById('current-l1'),
             cL2: document.getElementById('current-l2'),
             cL3: document.getElementById('current-l3'),
             cFreeText: document.getElementById('current-freetext'),
+            cObs: document.getElementById('current-observation'),
             cPhotoInput: document.getElementById('current-photo-input'),
             cPhotoCount: document.getElementById('current-photo-count'),
             btnRecordLap: document.getElementById('btn-record-lap'),
             btnExport: document.getElementById('btn-export'),
+            
             mId: document.getElementById('modal-lap-id'),
             mTime: document.getElementById('modal-lap-time'),
             mTotal: document.getElementById('modal-total-time'),
@@ -227,6 +267,7 @@
             mL2: document.getElementById('modal-l2'),
             mL3: document.getElementById('modal-l3'),
             mFreeText: document.getElementById('modal-freetext'),
+            mObs: document.getElementById('modal-observation'),
             mPhotoInput: document.getElementById('modal-photo-input'),
             mPhotoCount: document.getElementById('modal-photo-count'),
             btnModalCancel: document.getElementById('btn-modal-cancel'),
@@ -242,11 +283,6 @@
             let minutes = Math.floor((totalSeconds % 3600) / 60);
             let seconds = totalSeconds % 60;
             return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
-        };
-
-        const getTimestampStr = () => {
-            const d = new Date();
-            return `${d.getFullYear()}${padZero(d.getMonth()+1)}${padZero(d.getDate())}_${padZero(d.getHours())}${padZero(d.getMinutes())}${padZero(d.getSeconds())}`;
         };
 
         const getShortTimeStr = () => {
@@ -318,6 +354,7 @@
             state.currentL2 = !DOM.cL2.classList.contains('hidden') ? DOM.cL2.value : "";
             state.currentL3 = !DOM.cL3.classList.contains('hidden') ? DOM.cL3.value : "";
             state.currentFreeText = DOM.cFreeText.value;
+            state.currentObservation = DOM.cObs.value;
             saveStorage();
         };
 
@@ -336,16 +373,51 @@
         };
 
         const startStudy = () => {
-            const name = DOM.setupName.value.trim().replace(/[^a-zA-Z0-9_]/g, '');
+            const os = DOM.setupOs.value.trim();
+            const date = DOM.setupDate.value;
+            const model = DOM.setupModel.value.trim();
+            const component = DOM.setupComponent.value.trim();
             const cls = DOM.setupClass.value;
-            
-            if (!name || !cls) {
-                alert("Preencha Nome e Classificação Geral.");
+            const service = DOM.setupService.value;
+            const techs = DOM.setupTechs.value;
+
+            if (!os || !date || !model || !component || !cls || !service || !techs) {
+                alert("Preencha todos os campos obrigatórios do Setup.");
                 return;
             }
 
-            const timestamp = getTimestampStr();
-            state.studyId = `${name}_${cls}_${timestamp}`;
+            let finalClass = cls;
+            let sigla = "";
+            if (cls === "Desmontagem") sigla = "DMT";
+            else if (cls === "Montagem") sigla = "MTG";
+            else if (cls === "Inspecao") sigla = "INS";
+            else if (cls === "TextoLivre") {
+                finalClass = DOM.setupClassOther.value.trim();
+                if (!finalClass) {
+                    alert("Digite a classificação em Texto Livre.");
+                    return;
+                }
+                sigla = finalClass.split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '');
+            }
+
+            // Geração do Hash Único (4 caracteres)
+            const p1 = (Date.now() % 1296).toString(36).padStart(2, '0').toUpperCase();
+            const p2 = Math.floor(Math.random() * 1296).toString(36).padStart(2, '0').toUpperCase();
+            const hash = p1 + p2;
+
+            // Formatação da Data (DDMMYY)
+            const dParts = date.split('-'); 
+            const dateDDMMYY = `${dParts[2]}${dParts[1]}${dParts[0].substring(2)}`;
+
+            state.studyId = `${component}_${model}_${sigla}_${dateDDMMYY}_${hash}`;
+            state.hash = hash;
+            state.os = os;
+            state.date = date;
+            state.model = model;
+            state.component = component;
+            state.generalClass = finalClass;
+            state.serviceType = service;
+            state.techniciansCount = techs;
             
             const now = Date.now();
             state.startTime = now;
@@ -374,13 +446,14 @@
             const l2 = (!DOM.cL2.classList.contains('hidden') && DOM.cL2.value) ? DOM.cL2.value : "";
             const l3 = (!DOM.cL3.classList.contains('hidden') && DOM.cL3.value) ? DOM.cL3.value : "";
             const fText = DOM.cFreeText.value;
+            const obs = DOM.cObs.value;
 
             const lapObj = {
                 lapId: lapId,
                 lapNumber: state.lapCount,
                 lapTimeFormatted: formatTime(lapElapsed),
                 totalTimeFormatted: formatTime(totalElapsed),
-                l1: l1, l2: l2, l3: l3, freeText: fText,
+                l1: l1, l2: l2, l3: l3, freeText: fText, observation: obs,
                 imageCount: state.currentImageCount,
                 imageNames: [...state.currentImageNames] 
             };
@@ -399,6 +472,7 @@
             DOM.cL3.classList.add('hidden');
             DOM.cFreeText.classList.add('hidden');
             DOM.cFreeText.value = "";
+            DOM.cObs.value = "";
             state.currentImageCount = 0;
             state.currentImageNames = [];
             DOM.cPhotoCount.textContent = "0";
@@ -434,19 +508,20 @@
         const processPhoto = (file, isModal) => {
             if (!file) return;
             const ext = getFileExtension(file.name);
-            let targetLapId = "";
+            let targetLapNum = 0;
             let imgIndex = 0;
 
             if (isModal) {
                 const lap = state.laps[editingLapIndex];
                 imgIndex = lap.imageCount + 1;
-                targetLapId = lap.lapId;
+                targetLapNum = lap.lapNumber;
             } else {
                 imgIndex = state.currentImageCount + 1;
-                targetLapId = `Lap${padZero(state.lapCount + 1)}_Current`;
+                targetLapNum = state.lapCount + 1;
             }
 
-            const newFileName = `${state.studyId}_${targetLapId}_Foto${imgIndex}.${ext}`;
+            // Nomenclatura enxuta da foto: [Hash]_[Modelo]_L[Num_Lap]_F[Num_Foto].ext
+            const newFileName = `${state.hash}_${state.model}_L${padZero(targetLapNum)}_F${imgIndex}.${ext}`;
 
             const fileUrl = URL.createObjectURL(file);
             const a = document.createElement('a');
@@ -501,6 +576,7 @@
                 DOM.mFreeText.value = "";
             }
 
+            DOM.mObs.value = lap.observation || "";
             DOM.editModal.classList.remove('hidden');
         };
 
@@ -517,6 +593,7 @@
             lap.l2 = (!DOM.mL2.classList.contains('hidden') && DOM.mL2.value) ? DOM.mL2.value : "";
             lap.l3 = (!DOM.mL3.classList.contains('hidden') && DOM.mL3.value) ? DOM.mL3.value : "";
             lap.freeText = DOM.mFreeText.value;
+            lap.observation = DOM.mObs.value;
 
             renderLapsList();
             saveStorage();
@@ -528,8 +605,10 @@
 
             isFinishingStudy = true;
 
-            let csvContent = "Study ID;Lap ID;Lap Number;Lap Time (HH:mm:ss);Total Time (HH:mm:ss);Note;Image Count;Image Names\n";
+            let csvContent = "OS;Data;Modelo;Componente;Classificacao Geral;Tipo de Servico;Numero de Tecnicos;Study ID;Lap ID;Lap Number;Lap Time (HH:mm:ss);Total Time (HH:mm:ss);Note;Observacao;Image Count;Image Names\n";
             const exportData = [...state.laps].reverse();
+            
+            const setupDataStr = `${state.os};${state.date};${state.model};${state.component};${state.generalClass};${state.serviceType};${state.techniciansCount}`;
 
             exportData.forEach(lap => {
                 let note = [lap.l1, lap.l2, lap.l3].filter(Boolean).join(" - ");
@@ -537,15 +616,17 @@
                 if (lap.l3 === OUTRO_TEXT && ft) note = note.replace(OUTRO_TEXT, ft);
                 else if (ft) note += ` (${ft})`;
 
+                let obs = lap.observation ? lap.observation.replace(/;/g, ",").replace(/\n/g, " ") : "";
                 let imgs = lap.imageNames.join(" | ");
-                csvContent += `${state.studyId};${lap.lapId};${lap.lapNumber};${lap.lapTimeFormatted};${lap.totalTimeFormatted};"${note}";${lap.imageCount};"${imgs}"\n`;
+                
+                csvContent += `${setupDataStr};${state.studyId};${lap.lapId};${lap.lapNumber};${lap.lapTimeFormatted};${lap.totalTimeFormatted};"${note}";"${obs}";${lap.imageCount};"${imgs}"\n`;
             });
 
             const blob = new Blob(["\ufeff", csvContent], { type: 'text/csv;charset=utf-8;' }); 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${state.studyId}_dados.csv`;
+            a.download = `${state.studyId}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -555,15 +636,25 @@
             clearStorage(); 
 
             state = {
-                studyId: null, startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
-                currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentImageCount: 0, currentImageNames: []
+                studyId: null, hash: null, os: "", date: "", model: "", component: "", generalClass: "", serviceType: "", techniciansCount: 1,
+                startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
+                currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: []
             };
 
             DOM.totalTimeDisplay.textContent = "00:00:00";
             DOM.lapTimeDisplay.textContent = "00:00:00";
             DOM.lapsContainer.innerHTML = "";
-            DOM.setupName.value = "";
+            
+            DOM.setupOs.value = "";
+            DOM.setupModel.value = "";
+            DOM.setupComponent.value = "";
             DOM.setupClass.value = "";
+            DOM.setupClassOther.value = "";
+            DOM.setupClassOther.classList.add('hidden');
+            DOM.setupService.value = "";
+            DOM.setupTechs.value = "1";
+            DOM.setupDate.value = new Date().toISOString().split('T')[0];
+            
             resetCurrentUI();
 
             DOM.mainScreen.classList.add('hidden');
@@ -598,8 +689,22 @@
         };
 
         const bootApp = () => {
+            // Preenche a data de hoje por padrão
+            DOM.setupDate.value = new Date().toISOString().split('T')[0];
+
+            // Listener para mostrar input extra se class for "TextoLivre"
+            DOM.setupClass.addEventListener('change', (e) => {
+                if (e.target.value === 'TextoLivre') {
+                    DOM.setupClassOther.classList.remove('hidden');
+                } else {
+                    DOM.setupClassOther.classList.add('hidden');
+                }
+            });
+
             handleCascading('current');
             handleCascading('modal');
+            
+            DOM.cObs.addEventListener('input', saveLiveState);
 
             DOM.btnStart.addEventListener('click', startStudy);
             DOM.btnRecordLap.addEventListener('click', recordLap);
@@ -634,6 +739,9 @@
                 if (state.currentL3 === OUTRO_TEXT || state.currentFreeText) {
                     DOM.cFreeText.classList.remove('hidden');
                     DOM.cFreeText.value = state.currentFreeText;
+                }
+                if (state.currentObservation) {
+                    DOM.cObs.value = state.currentObservation;
                 }
                 
                 DOM.cPhotoCount.textContent = state.currentImageCount;
