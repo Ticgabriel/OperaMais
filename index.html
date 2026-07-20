@@ -101,6 +101,18 @@
                     <span id="lap-time-display" class="text-2xl font-mono text-slate-300">00:00:00</span>
                 </div>
             </div>
+
+            <!-- CONTROLE DE PAUSA E STATUS (CRÍTICO) -->
+            <div id="pause-container" class="w-full mt-3 flex items-center justify-between gap-2 border-t border-slate-700/50 pt-3 select-none">
+                <div class="flex items-center gap-1.5">
+                    <span id="status-indicator" class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="status-text" class="text-xs font-bold text-emerald-400 tracking-wider">CRONÔMETRO ATIVO</span>
+                </div>
+                <button id="btn-pause-resume" class="bg-amber-500 text-black font-black text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 active:scale-95 transition-all shadow-md cursor-pointer">
+                    <span id="btn-pause-icon">⏸️</span>
+                    <span id="btn-pause-text">PAUSAR</span>
+                </button>
+            </div>
         </div>
 
         <!-- Current Lap Classification Setup -->
@@ -110,7 +122,7 @@
                 
                 <div class="relative">
                     <input type="file" id="current-photo-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <button class="bg-slate-700 text-slate-200 px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-2 border border-slate-600">
+                    <button class="bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 border border-slate-600">
                         📷 Foto <span id="current-photo-count" class="bg-yellow-500 text-black px-1.5 rounded-full text-xs">0</span>
                     </button>
                 </div>
@@ -223,7 +235,13 @@
         let state = {
             studyId: null, hash: null, os: "", date: "", model: "", component: "", generalClass: "", serviceType: "", techniciansCount: 1,
             startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
-            currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: []
+            currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: [],
+            
+            // Controle de Pausa para Retenção em Tempo Real
+            isPaused: false,
+            accumulatedTotalTime: 0,
+            accumulatedLapTime: 0,
+            lastResumeTime: null
         };
 
         let timerInterval = null;
@@ -271,7 +289,14 @@
             mPhotoInput: document.getElementById('modal-photo-input'),
             mPhotoCount: document.getElementById('modal-photo-count'),
             btnModalCancel: document.getElementById('btn-modal-cancel'),
-            btnModalSave: document.getElementById('btn-modal-save')
+            btnModalSave: document.getElementById('btn-modal-save'),
+
+            // Botão de Pausa e Status
+            btnPauseResume: document.getElementById('btn-pause-resume'),
+            btnPauseIcon: document.getElementById('btn-pause-icon'),
+            btnPauseText: document.getElementById('btn-pause-text'),
+            statusIndicator: document.getElementById('status-indicator'),
+            statusText: document.getElementById('status-text')
         };
 
         const padZero = (num) => num.toString().padStart(2, '0');
@@ -360,11 +385,60 @@
 
         const updateDisplay = () => {
             if (!state.startTime) return;
-            const now = Date.now();
-            const totalElapsed = now - state.startTime;
-            const lapElapsed = now - state.currentLapStartTime;
+            
+            let totalElapsed = state.accumulatedTotalTime;
+            let lapElapsed = state.accumulatedLapTime;
+
+            if (!state.isPaused && state.lastResumeTime) {
+                const active = Date.now() - state.lastResumeTime;
+                totalElapsed += active;
+                lapElapsed += active;
+            }
+
             DOM.totalTimeDisplay.textContent = formatTime(totalElapsed);
             DOM.lapTimeDisplay.textContent = formatTime(lapElapsed);
+        };
+
+        const updatePauseUI = () => {
+            if (state.isPaused) {
+                DOM.btnPauseResume.className = "bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 active:scale-95 transition-all shadow-md cursor-pointer";
+                DOM.btnPauseIcon.textContent = "▶️";
+                DOM.btnPauseText.textContent = "RETOMAR";
+                DOM.statusIndicator.className = "h-2.5 w-2.5 rounded-full bg-amber-500";
+                DOM.statusText.className = "text-xs font-bold text-amber-500 tracking-wider";
+                DOM.statusText.textContent = "CRONÔMETRO PAUSADO";
+            } else {
+                DOM.btnPauseResume.className = "bg-amber-500 hover:bg-amber-400 text-black font-black text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 active:scale-95 transition-all shadow-md cursor-pointer";
+                DOM.btnPauseIcon.textContent = "⏸️";
+                DOM.btnPauseText.textContent = "PAUSAR";
+                DOM.statusIndicator.className = "h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse";
+                DOM.statusText.className = "text-xs font-bold text-emerald-400 tracking-wider";
+                DOM.statusText.textContent = "CRONÔMETRO ATIVO";
+            }
+        };
+
+        const togglePause = () => {
+            if (!state.startTime) return;
+            const now = Date.now();
+
+            if (state.isPaused) {
+                // Retomar contagem
+                state.isPaused = false;
+                state.lastResumeTime = now;
+            } else {
+                // Pausar contagem
+                state.isPaused = true;
+                if (state.lastResumeTime) {
+                    const active = now - state.lastResumeTime;
+                    state.accumulatedTotalTime += active;
+                    state.accumulatedLapTime += active;
+                }
+                state.lastResumeTime = null;
+            }
+
+            updatePauseUI();
+            updateDisplay();
+            saveStorage();
         };
 
         const startTimerEngine = () => {
@@ -423,6 +497,12 @@
             state.startTime = now;
             state.currentLapStartTime = now;
             
+            // Inicialização do controle de pausa
+            state.isPaused = false;
+            state.accumulatedTotalTime = 0;
+            state.accumulatedLapTime = 0;
+            state.lastResumeTime = now;
+
             populateSelect(DOM.cL1, Object.keys(DICTIONARY));
 
             DOM.setupScreen.classList.add('hidden');
@@ -430,6 +510,7 @@
             DOM.mainScreen.classList.add('flex');
             DOM.displayStudyId.textContent = state.studyId;
 
+            updatePauseUI();
             saveStorage();
             startTimerEngine();
         };
@@ -438,8 +519,13 @@
             const now = Date.now();
             state.lapCount++;
             
-            const lapElapsed = now - state.currentLapStartTime;
-            const totalElapsed = now - state.startTime;
+            let elapsed = 0;
+            if (!state.isPaused && state.lastResumeTime) {
+                elapsed = now - state.lastResumeTime;
+            }
+
+            const lapElapsed = state.accumulatedLapTime + elapsed;
+            const totalElapsed = state.accumulatedTotalTime + elapsed;
             const lapId = `Lap${padZero(state.lapCount)}_${getShortTimeStr()}`;
 
             const l1 = DOM.cL1.value || "Não classificado";
@@ -459,8 +545,12 @@
             };
 
             state.laps.unshift(lapObj); 
-            state.currentLapStartTime = now;
             
+            // Reseta contador do Lap Atual e salva totalizador acumulado
+            state.accumulatedLapTime = 0;
+            state.accumulatedTotalTime = totalElapsed;
+            state.lastResumeTime = state.isPaused ? null : now;
+
             resetCurrentUI();
             renderLapsList();
             saveStorage();
@@ -638,7 +728,11 @@
             state = {
                 studyId: null, hash: null, os: "", date: "", model: "", component: "", generalClass: "", serviceType: "", techniciansCount: 1,
                 startTime: null, currentLapStartTime: null, lapCount: 0, laps: [],
-                currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: []
+                currentL1: "", currentL2: "", currentL3: "", currentFreeText: "", currentObservation: "", currentImageCount: 0, currentImageNames: [],
+                isPaused: false,
+                accumulatedTotalTime: 0,
+                accumulatedLapTime: 0,
+                lastResumeTime: null
             };
 
             DOM.totalTimeDisplay.textContent = "00:00:00";
@@ -711,6 +805,9 @@
             DOM.btnExport.addEventListener('click', exportCSV);
             DOM.btnModalCancel.addEventListener('click', closeModal);
             DOM.btnModalSave.addEventListener('click', saveModal);
+            
+            // Listener de Pausa/Retomada
+            DOM.btnPauseResume.addEventListener('click', togglePause);
 
             DOM.cPhotoInput.addEventListener('change', (e) => processPhoto(e.target.files[0], false));
             DOM.mPhotoInput.addEventListener('change', (e) => processPhoto(e.target.files[0], true));
@@ -747,6 +844,7 @@
                 DOM.cPhotoCount.textContent = state.currentImageCount;
 
                 renderLapsList();
+                updatePauseUI();
                 startTimerEngine();
             }
         };
