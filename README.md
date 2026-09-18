@@ -1,2 +1,2 @@
 # OperaMais
-Projetos do Opera+
+Projetos do Opera+ App TimeStudy para cronoanálise.
